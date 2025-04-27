@@ -497,6 +497,7 @@ class UnoGeneratorInternal<Theme extends object = object> {
     parsed: ParsedUtil,
     variantHandlers = parsed[4],
     raw = parsed[1],
+    ctx: Readonly<RuleContext<Theme>>,
   ): UtilObject {
     const handler = variantHandlers.slice()
       .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -547,7 +548,7 @@ class UnoGeneratorInternal<Theme extends object = object> {
     }
 
     for (const p of this.config.postprocess)
-      p(obj)
+      p(obj, ctx, variantContextResult.layer ?? parsed[3]?.layer)
 
     return obj
   }
@@ -561,7 +562,8 @@ class UnoGeneratorInternal<Theme extends object = object> {
     if (isString(normalizedBody))
       return normalizedBody
 
-    const { selector, entries, parent } = this.applyVariants([0, overrideSelector || context.rawSelector, normalizedBody, undefined, context.variantHandlers])
+    const parsed: ParsedUtil = [0, overrideSelector || context.rawSelector, normalizedBody, undefined, context.variantHandlers]
+    const { selector, entries, parent } = this.applyVariants(parsed, parsed[4], parsed[1], context)
     const cssBody = `${selector}{${entriesToCss(entries)}}`
     if (parent)
       return `${parent}{${cssBody}}`
@@ -745,7 +747,7 @@ class UnoGeneratorInternal<Theme extends object = object> {
       layer: variantLayer,
       sort: variantSort,
       noMerge,
-    } = this.applyVariants(parsed)
+    } = this.applyVariants(parsed, parsed[4], parsed[1], context ?? {} as RuleContext<Theme>)
     const body = entriesToCss(entries)
 
     if (!body)
@@ -875,7 +877,7 @@ class UnoGeneratorInternal<Theme extends object = object> {
         rawStringifiedUtil.push([item[0], undefined, item[1], undefined, item[2], context, undefined])
         continue
       }
-      const { selector, entries, parent, sort, noMerge, layer } = this.applyVariants(item, [...item[4], ...parentVariants], raw)
+      const { selector, entries, parent, sort, noMerge, layer } = this.applyVariants(item, [...item[4], ...parentVariants], raw, context)
 
       // find existing layer and merge
       const selectorMap = layerMap.getFallback(layer ?? meta.layer, new TwoKeyMap())

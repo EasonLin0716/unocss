@@ -377,7 +377,7 @@ export interface VariantObject<Theme extends object = object> {
 export type Variant<Theme extends object = object> = VariantFunction<Theme> | VariantObject<Theme>
 
 export type Preprocessor = (matcher: string) => string | undefined
-export type Postprocessor = (util: UtilObject) => void
+export type Postprocessor<Theme extends object = object> = (util: UtilObject, ctx: Readonly<RuleContext<Theme>>, layer?: string) => void
 export type ThemeExtender<T> = (theme: T) => T | void
 
 export interface ConfigBase<Theme extends object = object> {
@@ -474,7 +474,7 @@ export interface ConfigBase<Theme extends object = object> {
   /**
    * Postprocess the generate utils object
    */
-  postprocess?: Arrayable<Postprocessor>
+  postprocess?: Arrayable<Postprocessor<Theme>>
 
   /**
    * Custom functions mutate the theme object.
@@ -891,7 +891,7 @@ export interface ResolvedConfig<Theme extends object = object> extends Omit<
   shortcuts: Shortcut<Theme>[]
   variants: VariantObject<Theme>[]
   preprocess: Preprocessor[]
-  postprocess: Postprocessor[]
+  postprocess: Postprocessor<Theme>[]
   rulesSize: number
   rules: readonly Rule<Theme>[]
   rulesDynamic: readonly DynamicRule<Theme>[]
